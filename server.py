@@ -29,11 +29,11 @@ def bind_socket() :
 
 def accept_connection() :
 	conn, address = s.accept()
-	print("Coonection Successful with IP : ", addess[0], " and Port : ", address[1])
+	print("Coonection Successful with IP : ", address[0], " and Port : ", address[1])
 	send_command(conn)
 	conn.close()
 
-def send_command() :
+def send_command(conn) :
 	while True :
 		cmd = input()
 		if cmd == 'quit' :
