@@ -8,5 +8,6 @@ GET = 'get'
 PUT = 'put'
 QUIT = 'quit'
 CD = 'cd'
+CWD = 'cwd'
 MKDIR = 'mkdir'
-ACCEPTED_COMMANDS = (LS, GET, PUT, QUIT, CD, MKDIR)
+ACCEPTED_COMMANDS = (LS, GET, PUT, QUIT, CD, MKDIR, CWD)
