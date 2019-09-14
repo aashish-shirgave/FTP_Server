@@ -53,7 +53,7 @@ def listen_from_client(ftp_socket) :
 		ftp_client, address = ftp_socket.accept()
 		print("Accepted connection From ", address)
 		#Now if we comsider multiple clients we  will create a client class
-		shi = ClientInterface(ftp_client, ftp_socket)
+		shi = ClientInterface(ftp_client, ftp_socket, address)
 
 		while True :
 			#write code about the I/O to client ans server
@@ -97,6 +97,9 @@ def listen_from_client(ftp_socket) :
 
 				if client_command == const.GET :
 					shi.get(client_request)
+
+				if client_command == const.PUT :
+					shi.put(client_request)
 
 
 

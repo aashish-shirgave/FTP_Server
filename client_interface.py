@@ -55,6 +55,13 @@ class ftp_client(Cmd):
 		#wait for receiving file
 		self.receive_file()
 		
+	def do_put(self, args) :
+		command = const.PUT + " " + args
+		command = command.encode()
+		self.ftp_socket.send(command)
+		filename = args.split("/")[-1]
+		self.send_file(filename, args)
+
 	def run_command(self, command) :
 		command = command.encode()
 		self.ftp_socket.send(command)
@@ -141,3 +148,74 @@ class ftp_client(Cmd):
 			return
 		return create_socket
 
+
+	def send_file (self,filename, filepath) :
+
+		with open(filepath, 'rb') as file_obj :
+			transfer_port = ''
+
+
+			data = file_obj.read()
+
+			#now we need a port for transfer socket
+			try :
+
+				transfer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+				transfer_socket.bind(('', 0))
+				transfer_socket.listen(1)
+				transfer_port = transfer_socket.getsockname()[1]
+			except socket.error as e :
+				print(e)
+				return
+
+			#now we will send the transfer port details to client
+			try :
+				print("Sending port to client")
+				transfer_port = str(transfer_port).encode()
+				self.ftp_socket.send(transfer_port)				
+				ack = self.ftp_socket.recv(const.FILEHEADER_SIZE)
+				while not ack :
+					print("sending port again")
+					#transfer_port = str(transfer_port).encode()
+					self.ftp_socket.send(transfer_port)
+					ack = self.ftp_socket.recv(const.FILEHEADER_SIZE)
+				print("Port address SENT")
+				print(ack.decode())
+
+			except socket.error as e :
+				print(e)
+				return
+
+			while True :
+				print("listening on ", transfer_port)
+				ftp_transfer_client , address = transfer_socket.accept()
+				print("accepted Connection from " , address)
+
+				if ftp_transfer_client :
+					byte_sent = 0 #this will count number of bytes sent
+
+					filename_header = self.buffer_header(filename, const.FILENAME_SIZE)
+
+					filesize_header = self.buffer_header(str(len(data)) , const.FILEHEADER_SIZE)
+
+					filetotaldata = filename_header.encode() + filesize_header.encode() + data
+
+					#filetotaldata = filetotaldata.encode()
+					while len(filetotaldata) > byte_sent :
+						print(byte_sent)
+						try :
+							byte_sent += ftp_transfer_client.send(filetotaldata[byte_sent :])
+
+						except socket.error as e :
+							print(e)
+							return
+					
+					return
+
+	def buffer_header(self, header, size = 10) :
+		header = str(header)
+
+		while len(header) < size :
+			header = "0" + header
+
+		return header

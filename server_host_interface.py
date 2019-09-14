@@ -32,10 +32,11 @@ class ClientInterface():
 	curr_dir = "/SERVER_DATA"
 
 
-	def __init__(self, ftp_client, ftp_socket):
+	def __init__(self, ftp_client, ftp_socket, address):
 		
 		self.ftp_client = ftp_client
 		self.ftp_socket = ftp_socket
+		self.address = address
 		self.main_folder = os.getcwd() 
 
 	def ls(self) :
@@ -201,7 +202,87 @@ class ClientInterface():
 			header = "0" + header
 
 		return header
-'''
-	def put() :
 
-'''
+	def put(self, args) :
+		self.receive_file()
+
+
+
+	def receive_file(self) :
+
+		transfer_port = ''
+		transfer_port = self.ftp_client.recv(const.BUFFER_SIZE)
+		#transfer_port = self.receive_bytes(self.ftp_socket, const.FILEHEADER_SIZE)
+		if not transfer_port :
+			print("Transfer port not received")
+		if transfer_port.decode() == "-1" :
+			print("File Not Found : ")
+			return
+		ack = "YES"
+		ack = ack.encode()
+		self.ftp_client.send(ack)
+		print(transfer_port)
+		
+
+		if transfer_port :
+			transfer_port = int(transfer_port)
+			#establish a connection between host(server) and client(this) 
+			ftp_transfer_socket = self.create_socket(self.address[0], transfer_port)
+
+			if ftp_transfer_socket :
+
+				filename_header = self.receive_bytes(ftp_transfer_socket, const.FILENAME_SIZE)
+				filename = filename_header.decode()
+				filename = filename.translate({ord('0') : ''})
+
+				filesize_header = self.receive_bytes(ftp_transfer_socket, const.FILEHEADER_SIZE)
+				file_size = int(filesize_header.decode())
+
+				print("Receiving ", file_size, " Bytes of data")
+
+				file_data = self.receive_bytes(ftp_transfer_socket, file_size)
+				filepath = self.main_folder + self.curr_dir + "/" + filename
+
+				transferfile = open(filepath, "wb")
+				transferfile.write(file_data)
+				transferfile.close()
+
+		else :
+			print("no transfer port")
+
+
+	def receive_bytes(self, ftp_socket, size = None):
+		#receives size number of bytes from server
+
+		if ftp_socket and size :
+			temp_buffer = ""
+			received= b''
+
+			#read input
+			while len(temp_buffer) < size :
+				temp_buffer = ftp_socket.recv(size)
+
+				if not temp_buffer :
+					print("No Bytes Received from server")
+				#temp_buffer = temp_buffer.decode()
+				print(type(temp_buffer))
+				received += temp_buffer[0:]
+
+			return received
+
+		else :
+			print("Error : Size or socket not defined")
+
+
+
+
+
+	def create_socket(self, ip_address, port) :
+		try:
+			create_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			create_socket.connect((ip_address, port))
+			print("Connection to server has been established on port ", port)
+		except socket.error as e:
+			print("Socket error : ", e )
+			return
+		return create_socket
