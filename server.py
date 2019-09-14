@@ -95,6 +95,9 @@ def listen_from_client(ftp_socket) :
 
 					shi.cwd()
 
+				if client_command == const.GET :
+					shi.get(client_request)
+
 
 
 			

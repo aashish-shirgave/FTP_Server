@@ -2,6 +2,8 @@
 
 
 BUFFER_SIZE = 4096
+FILENAME_SIZE = 30
+FILEHEADER_SIZE = 10
 
 LS = 'ls'
 GET = 'get'
