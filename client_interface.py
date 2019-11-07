@@ -107,9 +107,8 @@ class ftp_client(Cmd):
 				transferfile = open(filepath, "wb")
 				transferfile.write(file_data)
 				transferfile.close()
-
-		else :
-			print("no transfer port")
+			else :
+				print("no transfer port")
 
 
 	def receive_bytes(self, ftp_socket, size = None):
@@ -126,7 +125,7 @@ class ftp_client(Cmd):
 				if not temp_buffer :
 					print("No Bytes Received from server")
 				#temp_buffer = temp_buffer.decode()
-				print(type(temp_buffer))
+				#print(type(temp_buffer))
 				received += temp_buffer[0:]
 
 			return received
