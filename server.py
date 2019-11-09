@@ -4,6 +4,10 @@ import socket
 import sys
 import constants as const
 from server_host_interface import ClientInterface
+# import thread module 
+from _thread import *
+import threading 
+
 #TODO 
 '''
 get port from user (with checking input)
@@ -47,24 +51,18 @@ def initialize_port(port_id) :
 		print("IOError :" , e)
 		sys.exit()
 
-def listen_from_client(ftp_socket) :
-	'''listen for client connection'''
+def threaded (ftp_client, ftp_socket, address) :
+	shi = ClientInterface(ftp_client, ftp_socket, address)
 	while True :
-		ftp_client, address = ftp_socket.accept()
-		print("Accepted connection From ", address)
-		#Now if we comsider multiple clients we  will create a client class
-		shi = ClientInterface(ftp_client, ftp_socket, address)
-
-		while True :
 			#write code about the I/O to client ans server
 			try :
-				client_request = ftp_client.recv(const.BUFFER_SIZE)
+				client_request = shi.ftp_client.recv(const.BUFFER_SIZE)
 				client_request = client_request.decode()
 				
 				if client_request == '' :
 					#print("Aashish")
 					continue
-				print(	address , " : ", client_request)
+				print(	shi.address , " : ", client_request)
 
 				#print(type(client_request))
 				client_command = client_request.split(" ")[0]
@@ -100,6 +98,19 @@ def listen_from_client(ftp_socket) :
 
 				if client_command == const.PUT :
 					shi.put(client_request)
+
+def listen_from_client(ftp_socket) :
+	'''listen for client connection'''
+	print("listening from client")
+	while True :
+		ftp_client, address = ftp_socket.accept()
+		print("Accepted connection From ", address)
+		#Now if we comsider multiple clients we  will create a client class
+		
+
+		start_new_thread(threaded, (ftp_client, ftp_socket, address,))
+
+	ftp_socket.close()	
 
 
 
